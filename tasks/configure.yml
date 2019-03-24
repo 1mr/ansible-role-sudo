@@ -1,0 +1,41 @@
+---
+- name: copy sudoers file
+  copy: >
+    src=sudoers
+    dest=/etc/sudoers
+    owner=root
+    group=root
+    mode=0440
+
+- name: copy sudoers.d file(s)
+  template: >
+    src=sudo.j2
+    dest=/etc/sudoers.d/{{ item.file }}
+    owner=root
+    group=root
+    mode=0440
+  with_items: "{{ sudo }}"
+  when: item.state|default('present') == 'present'
+
+- name: check unmanaged file(s)
+  shell: >
+    ls -1p /etc/sudoers.d | grep -v /
+  register: unmanaged_files
+  changed_when: false
+
+- name: whitelist managed file(s)
+  set_fact: managed_files="{{ sudo|map(attribute='file')|list }}"
+
+- name: delete unmanaged file(s)
+  file: >
+    path=/etc/sudoers.d/{{ item }}
+    state=absent
+  with_items: "{{ unmanaged_files.stdout_lines }}"
+  when: item not in "{{managed_files}}".split("'")[1::2] and item != "README"
+
+- name: delete sudoers.d file(s)
+  file: >
+    path=/etc/sudoers.d/{{ item.file }}
+    state=absent
+  with_items: "{{ sudo }}"
+  when: item.state|default('present') == 'absent'

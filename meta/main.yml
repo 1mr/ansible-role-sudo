@@ -1,0 +1,15 @@
+---
+galaxy_info:
+  role_name: sudo
+  author: Stas Stavnichuk
+  description: sudo configuration
+  license: BSD
+  min_ansible_version: 1.4
+  platforms:
+  - name: Debian
+    versions:
+    - jessie
+    - squeeze
+    - wheezy
+galaxy_tags:
+  - system
